@@ -10,3 +10,4 @@ urlpatterns = [
     path("add_favorite/<str:product_id>/", views.add_favorite, name="add_favorite"),
     path('remove_favorite/<str:product_id>/', views.remove_favorite, name='remove_favorite'),
 ]
+

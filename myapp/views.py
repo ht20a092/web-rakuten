@@ -90,4 +90,24 @@ def remove_favorite(request, product_id):
         favorite = FavoriteProduct.objects.filter(product_id=product_id)
         if favorite.exists():
             favorite.delete()
-    return redirect("myapp:favorites")
+        return redirect("myapp:favorites")
+
+def index(request):
+    return render(request, "myapp/index.html")
+
+def about(request):
+    return render(request, "myapp/about.html")
+
+from django.urls import path
+from . import views
+
+app_name = "myapp"
+urlpatterns = [
+    path("", views.index, name="index"),
+    path("search/", views.search, name="search"),
+    path("favorites/", views.favorites, name="favorites"),
+    path("add_favorite/<str:product_id>/", views.add_favorite, name="add_favorite"),
+    path("remove_favorite/<str:product_id>/", views.remove_favorite, name="remove_favorite"),
+    path("about/", views.about, name="about"),
+]
+

@@ -14,6 +14,9 @@
                 <div class="product-info">
                     <h2 class="product-name">{{ product.Item.itemName }}</h2>
                     <p class="product-price">{{ product.Item.itemPrice }}円</p>
+                    <p class="product-url">
+                        <a href="{{ product.Item.itemUrl }}" target="_blank" rel="noopener noreferrer">{{ product.Item.itemUrl }}</a>
+                    </p>
                 </div>
                 <form method="post" action="{% url 'myapp:add_favorite' product.Item.itemCode %}">
                   {% csrf_token %}
