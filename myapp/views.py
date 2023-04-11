@@ -84,3 +84,10 @@ def search(request):
     if query:
         products = search_products(query)
     return render(request, "myapp/search.html", {"products": products})
+
+def remove_favorite(request, product_id):
+    if request.method == "POST":
+        favorite = FavoriteProduct.objects.filter(product_id=product_id)
+        if favorite.exists():
+            favorite.delete()
+    return redirect("myapp:favorites")

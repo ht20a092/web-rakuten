@@ -11,6 +11,10 @@
                 <img src="{{ favorite.image_url }}" alt="{{ favorite.name }}" width="100" height="100">
                 <h3>{{ favorite.name }}</h3>
                 <p>{{ favorite.price }}円</p>
+                <form method="post" action="{% url 'myapp:remove_favorite' favorite.product_id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">お気に入りから削除</button>
+                </form>
             </li>
         {% endfor %}
         </ul>
