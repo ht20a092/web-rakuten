@@ -1,0 +1,26 @@
+{% extends "myapp/base.html" %}
+
+{% block content %}
+    <h1>商品検索</h1>
+    <form method="get">
+        <input type="text" name="query" value="{{ query }}" placeholder="キーワードを入力">
+        <input type="submit" value="検索">
+    </form>
+
+    <div class="product-list">
+        {% for product in products %}
+            <div class="product">
+                <img src="{{ product.Item.mediumImageUrls.0.imageUrl }}" alt="{{ product.Item.itemName }}" class="product-image">
+                <div class="product-info">
+                    <h2 class="product-name">{{ product.Item.itemName }}</h2>
+                    <p class="product-price">{{ product.Item.itemPrice }}円</p>
+                </div>
+                <form method="post" action="{% url 'myapp:add_favorite' product.Item.itemCode %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="product_id" value="{{ product.Item.itemCode }}">
+                  <button type="submit" class="btn btn-primary">お気に入りに追加</button>
+                </form>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

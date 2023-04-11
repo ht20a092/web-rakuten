@@ -1,0 +1,20 @@
+{% extends "myapp/base.html" %}
+
+{% block title %}お気に入りリスト{% endblock %}
+
+{% block content %}
+    <h1>お気に入りリスト</h1>
+    {% if favorite_products %}
+        <ul>
+        {% for favorite in favorite_products %}
+            <li>
+                <img src="{{ favorite.image_url }}" alt="{{ favorite.name }}" width="100" height="100">
+                <h3>{{ favorite.name }}</h3>
+                <p>{{ favorite.price }}円</p>
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>お気に入り登録された商品はありません。</p>
+    {% endif %}
+{% endblock %}
