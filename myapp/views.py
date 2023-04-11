@@ -93,7 +93,11 @@ def send_line_notify(message):
     data = {"message": message}
     requests.post("https://notify-api.line.me/api/notify", headers=headers, data=data)
 
+    # 追加: レスポンスのステータスコードとテキストを出力
+    print(f"Status code: {response.status_code}, Text: {response.text}")
+
 def check_price():
+    print("Checking prices and sending LINE notifications...")
     favorite_products = FavoriteProduct.objects.all()
     for favorite_product in favorite_products:
         current_product = get_product_details(favorite_product.product_id)
