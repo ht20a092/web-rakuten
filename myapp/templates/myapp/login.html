@@ -1,0 +1,13 @@
+{% extends "myapp/base.html" %}
+
+{% block content %}
+    <h2>ログイン</h2>
+    <form method="post">
+        {% csrf_token %}
+        <label for="username">ユーザー名:</label>
+        <input type="text" name="username" required>
+        <label for="password">パスワード:</label>
+        <input type="password" name="password" required>
+        <button type="submit">ログイン</button>
+    </form>
+{% endblock %}

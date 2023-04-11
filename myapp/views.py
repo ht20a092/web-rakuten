@@ -1,10 +1,14 @@
-import requests
-from django.shortcuts import redirect
-from .models import FavoriteProduct
-from django.shortcuts import render
+from django.shortcuts import redirect, render
+from .models import Product, UserProfile
 from apscheduler.schedulers.background import BackgroundScheduler
-from django.shortcuts import render, redirect
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+import requests
+from django.contrib.auth import authenticate, login as auth_login, logout
 from django.http import HttpResponse
+from django.contrib.auth.forms import UserCreationForm
+
+
 
 def search_products(query):
     app_id = "1072722666659103303"
@@ -35,24 +39,50 @@ def get_product_details(product_id):
 
 def add_favorite(request, product_id):
     if request.method == "POST":
-        product = get_product_details(product_id)
-        if product is not None:
-            favorite = FavoriteProduct(
-                product_id=product_id,
-                name=product["itemName"],
-                image_url=product["mediumImageUrls"][0]["imageUrl"],
-                price=product["itemPrice"],
-                initial_price=product["itemPrice"],  # Add this line
+        # 商品情報を取得
+        product_info = get_product_details(product_id)
+        if product_info is not None:
+            # お気に入りに追加
+            favorite_product, created = Product.objects.get_or_create(
+                product_id=product_info["itemCode"],
+                defaults={
+                    "name": product_info["itemName"],
+                    "price": product_info["itemPrice"],
+                    "image": product_info["mediumImageUrls"][0]["imageUrl"],
+                    "url": product_info["itemUrl"],
+                    "platform": "rakuten",
+                },
             )
-            favorite.save()
-        else:
-            print(f"Product with id {product_id} not found.")
-    return redirect("myapp:favorites")
+            request.user.userprofile.favorite_products.add(favorite_product)
+            request.user.save()
+
+    return HttpResponseRedirect(reverse("myapp:favorites"))
 
 def favorites(request):
-    favorite_products = FavoriteProduct.objects.all()
-    context = {"favorite_products": favorite_products}
-    return render(request, "myapp/favorites.html", context)
+    if request.user.is_authenticated:
+        user = request.user
+        user_profile = UserProfile.objects.get(user=user)
+        favorite_products = user_profile.favorite_products.all()
+
+        # 商品情報を取得し、リストに格納する
+        products_info = []
+        for favorite_product in favorite_products:
+            product_info = {
+                'product_id': favorite_product.product_id,
+                'name': favorite_product.name,
+                'image': favorite_product.image,
+                'price': favorite_product.price,
+                'url': favorite_product.url
+            }
+            products_info.append(product_info)
+
+        # コンソールにお気に入り商品情報を出力
+        print("お気に入り商品情報:", products_info)
+
+        context = {'favorite_products': products_info}
+        return render(request, 'myapp/favorites.html', context)
+    else:
+        return redirect('myapp:login')
 
 def send_line_notify(message):
     access_token = "IbEECzOXdXCUl5xXS2svSf6rAAr8z7aSkYe9RLD7Six"
@@ -87,10 +117,14 @@ def search(request):
 
 def remove_favorite(request, product_id):
     if request.method == "POST":
-        favorite = FavoriteProduct.objects.filter(product_id=product_id)
-        if favorite.exists():
-            favorite.delete()
+        user = request.user
+        if user.is_authenticated:
+            favorite = user.userprofile.favorite_products.filter(product_id=product_id)
+            if favorite.exists():
+                user.userprofile.favorite_products.remove(favorite.first())
+                user.save()
         return redirect("myapp:favorites")
+
 
 def index(request):
     return render(request, "myapp/index.html")
@@ -111,3 +145,29 @@ urlpatterns = [
     path("about/", views.about, name="about"),
 ]
 
+def login(request):
+    if request.method == "POST":
+        username = request.POST["username"]
+        password = request.POST["password"]
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            auth_login(request, user)
+            return redirect("myapp:index")
+        else:
+            return HttpResponse("ユーザー名またはパスワードが間違っています。")
+    return render(request, "myapp/login.html")
+
+def register(request):
+    if request.method == "POST":
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            auth_login(request, user)
+            return redirect("myapp:index")
+    else:
+        form = UserCreationForm()
+    return render(request, "myapp/register.html", {"form": form})
+
+def logout_view(request):
+    logout(request)
+    return redirect('myapp:index')
