@@ -1,1 +1,1 @@
-default_app_config = 'myapp.apps.MyappConfig'
+default_app_config = 'myapp.apps.MyappConfig'  # 'MyAppConfig' を 'MyappConfig' に変更

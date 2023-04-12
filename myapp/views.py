@@ -1,6 +1,5 @@
 from django.shortcuts import redirect, render
 from .models import Product, UserProfile
-from apscheduler.schedulers.background import BackgroundScheduler
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 import requests
@@ -85,31 +84,26 @@ def favorites(request):
         return redirect('myapp:login')
 
 def send_line_notify(message):
-    access_token = "IbEECzOXdXCUl5xXS2svSf6rAAr8z7aSkYe9RLD7Six"
+    url = 'https://notify-api.line.me/api/notify'
+    token = 'IbEECzOXdXCUl5xXS2svSf6rAAr8z7aSkYe9RLD7Six'
     headers = {
-        "Authorization": f"Bearer {access_token}",
-        "Content-Type": "application/x-www-form-urlencoded",
+        'Authorization': f'Bearer {token}'
     }
-    data = {"message": message}
-    requests.post("https://notify-api.line.me/api/notify", headers=headers, data=data)
-
-    # 追加: レスポンスのステータスコードとテキストを出力
+    data = {
+        'message': message
+    }
+    response = requests.post(url, headers=headers, data=data)  # ここで response が定義されるべき
     print(f"Status code: {response.status_code}, Text: {response.text}")
+    return response
 
-def check_price():
-    print("Checking prices and sending LINE notifications...")
-    favorite_products = FavoriteProduct.objects.all()
-    for favorite_product in favorite_products:
-        current_product = get_product_details(favorite_product.product_id)
-        current_price = current_product["itemPrice"]
-        if current_price < favorite_product.price:
-            message = f"【価格変更】 {favorite_product.name} が {favorite_product.price} 円から {current_price} 円に下がりました。"
-            send_line_notify(message)
-            favorite_product.price = current_price
-            favorite_product.save()
+def send_test_line_message():
+    print("Sending test LINE message...")
+    message = "テストです"
+    response = send_line_notify(message)
+    if response.status_code != 200:
+        print(f"Error sending LINE message: {response.status_code}, {response.text}")
 
 scheduler = BackgroundScheduler()
-scheduler.add_job(check_price, "interval", hours=1)
 scheduler.start()
 
 def search(request):
@@ -175,3 +169,30 @@ def register(request):
 def logout_view(request):
     logout(request)
     return redirect('myapp:index')
+
+def search_products_on_rakuten(query="", item_code=""):
+    app_id = RAKUTEN_APP_ID
+    url = "https://app.rakuten.co.jp/services/api/IchibaItem/Search/20170706"
+    params = {
+        "applicationId": app_id,
+        "format": "json",
+    }
+    if query:
+        params["keyword"] = query
+    if item_code:
+        params["itemCode"] = item_code
+
+    response = requests.get(url, params=params)
+    result = response.json()
+    if "Items" in result:
+        if item_code:
+            return result["Items"][0]["Item"]
+        else:
+            return result["Items"]
+    else:
+        return None
+
+
+def search_products_on_yahoo(query="", item_code=""):
+    # ここに Yahoo!ショッピング用の関数を実装してください。
+    pass
