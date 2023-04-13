@@ -3,6 +3,23 @@ from django.conf import settings
 from django.core.mail import send_mail
 from apscheduler.schedulers.background import BackgroundScheduler
 from myapp.models import Product, UserProfile
+from .views import send_line_notify
+
+def search_products_on_rakuten(query="", item_code=""):
+    app_id = "1072722666659103303"
+    url = "https://app.rakuten.co.jp/services/api/IchibaItem/Search/20170706"
+    params = {
+        "applicationId": app_id,
+        "format": "json",
+        "keyword": query,
+    }
+    response = requests.get(url, params=params)
+    result = response.json()
+    return result["Items"]
+
+def search_products_on_yahoo(query="", item_code=""):
+    # ここに Yahoo!ショッピング用の関数を実装してください。
+    pass
 
 def check_price():
     users = UserProfile.objects.all()
@@ -21,6 +38,15 @@ def check_price():
                 product.price = item["itemPrice"]
                 product.save()
 
+# この関数を追加します
+def send_test_line_message():
+    print("Sending test LINE message...")
+    message = "テストです"
+    response = send_line_notify(message)
+    if response.status_code != 200:
+        print(f"Error sending LINE message: {response.status_code}, {response.text}")
+
 scheduler = BackgroundScheduler()
 scheduler.add_job(check_price, "interval", hours=1)
+scheduler.add_job(send_test_line_message, "interval", minutes=1)  # この行を追加
 scheduler.start()

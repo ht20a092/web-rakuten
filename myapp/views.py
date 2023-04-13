@@ -6,22 +6,13 @@ import requests
 from django.contrib.auth import authenticate, login as auth_login, logout
 from django.http import HttpResponse
 from django.contrib.auth.forms import UserCreationForm
+from apscheduler.schedulers.background import BackgroundScheduler
+from . import tasks
 
 
 
-def search_products(query):
-    app_id = "1072722666659103303"
-    url = "https://app.rakuten.co.jp/services/api/IchibaItem/Search/20170706"
-    params = {
-        "applicationId": app_id,
-        "format": "json",
-        "keyword": query,
-    }
-    response = requests.get(url, params=params)
-    result = response.json()
-    return result["Items"]
 
-def get_product_details(product_id):
+def search_product_details_on_rakuten(product_id):
     app_id = "1072722666659103303"
     url = "https://app.rakuten.co.jp/services/api/IchibaItem/Search/20170706"  # Fixed API endpoint
     params = {
@@ -39,7 +30,7 @@ def get_product_details(product_id):
 def add_favorite(request, product_id):
     if request.method == "POST":
         # 商品情報を取得
-        product_info = get_product_details(product_id)
+        product_info = search_product_details_on_rakuten(product_id)
         if product_info is not None:
             # お気に入りに追加
             favorite_product, created = Product.objects.get_or_create(
@@ -110,8 +101,9 @@ def search(request):
     query = request.GET.get("query", "")
     products = []
     if query:
-        products = search_products(query)
+        products = tasks.search_products_on_rakuten(query)  # この行を変更
     return render(request, "myapp/search.html", {"products": products})
+
 
 def remove_favorite(request, product_id):
     if request.method == "POST":
@@ -193,6 +185,3 @@ def search_products_on_rakuten(query="", item_code=""):
         return None
 
 
-def search_products_on_yahoo(query="", item_code=""):
-    # ここに Yahoo!ショッピング用の関数を実装してください。
-    pass
