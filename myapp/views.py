@@ -10,6 +10,9 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from . import tasks
 
 
+RAKUTEN_APP_ID = "1072722666659103303"
+YAHOO_APP_ID = "dj00aiZpPTdpT2VIRUxmWGpsdiZzPWNvbnN1bWVyc2VjcmV0Jng9ZmI-"
+
 
 
 def search_product_details_on_rakuten(product_id):
@@ -26,6 +29,8 @@ def search_product_details_on_rakuten(product_id):
         return result["Items"][0]["Item"]
     else:
         return None
+
+
 
 def add_favorite(request, product_id):
     if request.method == "POST":
@@ -104,6 +109,21 @@ def search(request):
         products = tasks.search_products_on_rakuten(query)  # この行を変更
     return render(request, "myapp/search.html", {"products": products})
 
+def search_rakuten(request):
+    query = request.GET.get("query", "")
+    products = []
+    if query:
+        products = search_products_on_rakuten(query)
+    return render(request, "myapp/search_rakuten.html", {"products": products})
+
+def search_yahoo(request):
+    query = request.GET.get("query", "")
+    products = []
+    if query:
+        products = tasks.search_products_on_yahoo(query)  # 関数名はそのまま
+    return render(request, "myapp/search_yahoo.html", {"products": products, "query": query})  # "query"を追加
+
+
 
 def remove_favorite(request, product_id):
     if request.method == "POST":
@@ -128,11 +148,13 @@ from . import views
 app_name = "myapp"
 urlpatterns = [
     path("", views.index, name="index"),
-    path("search/", views.search, name="search"),
+    path("search/rakuten/", views.search_rakuten, name="search_rakuten"),  # 追加
+    path("search/yahoo/", views.search_yahoo, name="search_yahoo"),        # 追加
     path("favorites/", views.favorites, name="favorites"),
     path("add_favorite/<str:product_id>/", views.add_favorite, name="add_favorite"),
     path("remove_favorite/<str:product_id>/", views.remove_favorite, name="remove_favorite"),
     path("about/", views.about, name="about"),
+    # 他のルーティング...
 ]
 
 def login(request):

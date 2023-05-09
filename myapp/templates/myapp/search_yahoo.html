@@ -1,0 +1,32 @@
+{% extends "myapp/base.html" %}
+
+{% block content %}
+    <h1>Yahooショッピング 商品検索</h1>
+    <form method="get">
+        <input type="text" name="query" value="{{ query }}" placeholder="キーワードを入力">
+        <input type="submit" value="検索">
+    </form>
+
+    {% for product in products %}
+    <div class="product">
+        {% if product.ProductId %}
+        <img src="{{ product.Image.Medium }}" alt="{{ product.Name }}" class="product-image">
+        <div class="product-info">
+            <h2 class="product-name">{{ product.Name }}</h2>
+            <p class="product-price">{{ product.Price }}円</p>
+            <p class="product-url">
+                <a href="{{ product.Url }}" target="_blank" rel="noopener noreferrer">{{ product.Url }}</a>
+            </p>
+        </div>
+        <form method="post" action="{% url 'myapp:add_favorite' product.ProductId %}">
+            {% csrf_token %}
+            <input type="hidden" name="product_id" value="{{ product.ProductId }}">
+            <button type="submit" class="btn btn-primary">お気に入りに追加</button>
+        </form>
+        {% else %}
+        <p>商品コードが利用できません</p>
+        {% endif %}
+    </div>
+{% endfor %}
+    </div>
+{% endblock %}

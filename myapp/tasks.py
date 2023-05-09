@@ -17,9 +17,27 @@ def search_products_on_rakuten(query="", item_code=""):
     result = response.json()
     return result["Items"]
 
-def search_products_on_yahoo(query="", item_code=""):
-    # ここに Yahoo!ショッピング用の関数を実装してください。
-    pass
+def search_products_on_yahoo(query=""):
+    YAHOO_APP_ID = "dj00aiZpPTdpT2VIRUxmWGpsdiZzPWNvbnN1bWVyc2VjcmV0Jng9ZmI-"  
+    url = "https://shopping.yahooapis.jp/ShoppingWebService/V3/itemSearch"
+    params = {
+        "appid": YAHOO_APP_ID,
+        "query": query,
+    }
+    response = requests.get(url, params=params)
+
+    try:
+        result = response.json()
+        hits = result["hits"]
+        for hit in hits:
+            print(hit)  # これが各商品の全フィールドを出力するデバッグ用のコードです
+        return hits
+    except ValueError:
+        print("Error decoding JSON data from Yahoo API")
+        return []
+
+
+
 
 def check_price():
     users = UserProfile.objects.all()
@@ -48,5 +66,5 @@ def send_test_line_message():
 
 scheduler = BackgroundScheduler()
 scheduler.add_job(check_price, "interval", hours=1)
-scheduler.add_job(send_test_line_message, "interval", minutes=1)  # この行を追加
+# scheduler.add_job(send_test_line_message, "interval", minutes=1)  # この行を追加
 scheduler.start()
