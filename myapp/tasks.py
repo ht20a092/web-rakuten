@@ -5,6 +5,21 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from myapp.models import Product, UserProfile
 from .views import send_line_notify
 
+def get_json_from_api(url, params):
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()  # Raises stored HTTPError, if one occurred.
+        return response.json()
+    except requests.exceptions.HTTPError as errh:
+        print ("HTTP Error:", errh)
+    except requests.exceptions.ConnectionError as errc:
+        print ("Error Connecting:", errc)
+    except requests.exceptions.Timeout as errt:
+        print ("Timeout Error:", errt)
+    except requests.exceptions.RequestException as err:
+        print ("Error:", err)
+    return None
+
 def search_products_on_rakuten(query="", item_code=""):
     app_id = "1072722666659103303"
     url = "https://app.rakuten.co.jp/services/api/IchibaItem/Search/20170706"
@@ -13,9 +28,8 @@ def search_products_on_rakuten(query="", item_code=""):
         "format": "json",
         "keyword": query,
     }
-    response = requests.get(url, params=params)
-    result = response.json()
-    return result["Items"]
+    result = get_json_from_api(url, params)
+    return result["Items"] if result else []
 
 def search_products_on_yahoo(query=""):
     YAHOO_APP_ID = "dj00aiZpPTdpT2VIRUxmWGpsdiZzPWNvbnN1bWVyc2VjcmV0Jng9ZmI-"  
@@ -28,15 +42,15 @@ def search_products_on_yahoo(query=""):
 
     try:
         result = response.json()
+        print(result)  # 全てのレスポンスを確認
         hits = result["hits"]
-        for hit in hits:
-            print(hit)  # これが各商品の全フィールドを出力するデバッグ用のコードです
         return hits
     except ValueError:
         print("Error decoding JSON data from Yahoo API")
         return []
-
-
+    except KeyError:
+        print("Key 'ResultSet' not found in the response")
+        return []
 
 
 def check_price():
@@ -56,7 +70,6 @@ def check_price():
                 product.price = item["itemPrice"]
                 product.save()
 
-# この関数を追加します
 def send_test_line_message():
     print("Sending test LINE message...")
     message = "テストです"
@@ -66,5 +79,9 @@ def send_test_line_message():
 
 scheduler = BackgroundScheduler()
 scheduler.add_job(check_price, "interval", hours=1)
-# scheduler.add_job(send_test_line_message, "interval", minutes=1)  # この行を追加
+
+if settings.DEBUG:  # Only send test messages in debug mode
+    scheduler.add_job(send_test_line_message, "interval", minutes=1)
+
 scheduler.start()
+

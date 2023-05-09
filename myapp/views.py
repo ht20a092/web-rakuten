@@ -117,12 +117,12 @@ def search_rakuten(request):
     return render(request, "myapp/search_rakuten.html", {"products": products})
 
 def search_yahoo(request):
-    query = request.GET.get("query", "")
-    products = []
+    query = request.GET.get('query', '')
+    hits = []  # 変更：'products' を 'hits' に変更
     if query:
-        products = tasks.search_products_on_yahoo(query)  # 関数名はそのまま
-    return render(request, "myapp/search_yahoo.html", {"products": products, "query": query})  # "query"を追加
-
+        hits = tasks.search_products_on_yahoo(query)  # 変更：'products' を 'hits' に変更
+#        print(hits)
+    return render(request, 'myapp/search_yahoo.html', {'query': query, 'hits': hits})  # 変更：'products' を 'hits' に変更
 
 
 def remove_favorite(request, product_id):
