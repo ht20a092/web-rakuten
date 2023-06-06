@@ -164,7 +164,7 @@ def login(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             auth_login(request, user)
-            return redirect("myapp:index")
+            return redirect("myapp:search_rakuten")
         else:
             return HttpResponse("ユーザー名またはパスワードが間違っています。")
     return render(request, "myapp/login.html")
