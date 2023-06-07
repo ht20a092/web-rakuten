@@ -15,7 +15,7 @@
         <td><img src="{{ product.image }}" alt="{{ product.name }}"></td>
         <td>{{ product.price }} 円</td>
         <td>
-          <form method="post" action="{% url 'myapp:remove_favorite' product.product_id %}">
+          <form method="post" action="{% url 'myapp:remove_favorite' 'rakuten' product.product_id %}">
             {% csrf_token %}
             <button type="submit" class="btn btn-danger">削除</button>
           </form>
@@ -38,7 +38,7 @@
         <td><img src="{{ product.image }}" alt="{{ product.name }}"></td>
         <td>{{ product.price }} 円</td>
         <td>
-          <form method="post" action="{% url 'myapp:remove_favorite' product.product_id %}">
+          <form method="post" action="{% url 'myapp:remove_favorite' 'yahoo' product.product_id %}">
             {% csrf_token %}
             <button type="submit" class="btn btn-danger">削除</button>
           </form>
@@ -47,4 +47,3 @@
     {% endfor %}
   </table>
 {% endblock %}
-

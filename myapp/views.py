@@ -8,6 +8,7 @@ from django.http import HttpResponse
 from django.contrib.auth.forms import UserCreationForm
 from apscheduler.schedulers.background import BackgroundScheduler
 from . import tasks
+from urllib.parse import quote
 
 
 RAKUTEN_APP_ID = "1072722666659103303"
@@ -30,28 +31,56 @@ def search_product_details_on_rakuten(product_id):
     else:
         return None
 
+def search_product_details_on_yahoo(product_id):
+    app_id = "dj00aiZpPTdpT2VIRUxmWGpsdiZzPWNvbnN1bWVyc2VjcmV0Jng9ZmI-"
+    url = f"https://shopping.yahooapis.jp/ShoppingWebService/V3/itemSearch?appid={app_id}&itemCode={product_id}"
+    response = requests.get(url)
+    result = response.json()
+    if 'hits' in result and len(result['hits']) > 0:
+        return result["hits"][0]
+    else:
+        return None
 
-
-def add_favorite(request, product_id):
+def add_favorite(request, platform, product_id):
     if request.method == "POST":
         # 商品情報を取得
-        product_info = search_product_details_on_rakuten(product_id)
+        if platform == "rakuten":
+            product_info = search_product_details_on_rakuten(product_id)
+        elif platform == "yahoo":
+            product_info = search_product_details_on_yahoo(product_id)
+
         if product_info is not None:
+            # Yahooと楽天で取得する情報の形式が異なるため、それぞれの場合で条件分岐
+            if platform == 'yahoo':
+                item_code = product_info["code"]
+                item_name = product_info["name"]
+                item_price = product_info["price"]
+                item_image = product_info["image"]["medium"]
+                item_url = product_info["url"]
+            elif platform == 'rakuten':
+                item_code = product_info["itemCode"]
+                item_name = product_info["itemName"]
+                item_price = product_info["itemPrice"]
+                item_image = product_info["mediumImageUrls"][0]["imageUrl"]
+                item_url = product_info["itemUrl"]
+
             # お気に入りに追加
             favorite_product, created = Product.objects.get_or_create(
-                product_id=product_info["itemCode"],
+                product_id=item_code,
                 defaults={
-                    "name": product_info["itemName"],
-                    "price": product_info["itemPrice"],
-                    "image": product_info["mediumImageUrls"][0]["imageUrl"],
-                    "url": product_info["itemUrl"],
-                    "platform": "rakuten",
+                    "name": item_name,
+                    "price": item_price,
+                    "image": item_image,
+                    "url": item_url,
+                    "platform": platform,
                 },
             )
             request.user.userprofile.favorite_products.add(favorite_product)
             request.user.save()
 
     return HttpResponseRedirect(reverse("myapp:favorites"))
+
+
 
 def favorites(request):
     if request.user.is_authenticated:
@@ -124,22 +153,23 @@ def search_rakuten(request):
 
 def search_yahoo(request):
     query = request.GET.get('query', '')
-    hits = []  # 変更：'products' を 'hits' に変更
+    hits = []  
     if query:
-        hits = tasks.search_products_on_yahoo(query)  # 変更：'products' を 'hits' に変更
-#        print(hits)
-    return render(request, 'myapp/search_yahoo.html', {'query': query, 'hits': hits})  # 変更：'products' を 'hits' に変更
+        query = quote(query)
+        hits = tasks.search_products_on_yahoo(query)  
+    return render(request, 'myapp/search_yahoo.html', {'query': query, 'hits': hits})  
 
 
-def remove_favorite(request, product_id):
+def remove_favorite(request, platform, product_id):
     if request.method == "POST":
         user = request.user
         if user.is_authenticated:
-            favorite = user.userprofile.favorite_products.filter(product_id=product_id)
+            favorite = user.userprofile.favorite_products.filter(platform=platform, product_id=product_id)
             if favorite.exists():
                 user.userprofile.favorite_products.remove(favorite.first())
                 user.save()
         return redirect("myapp:favorites")
+
 
 
 def index(request):
@@ -157,8 +187,8 @@ urlpatterns = [
     path("search/rakuten/", views.search_rakuten, name="search_rakuten"),  # 追加
     path("search/yahoo/", views.search_yahoo, name="search_yahoo"),        # 追加
     path("favorites/", views.favorites, name="favorites"),
-    path("add_favorite/<str:product_id>/", views.add_favorite, name="add_favorite"),
-    path("remove_favorite/<str:product_id>/", views.remove_favorite, name="remove_favorite"),
+    path("add_favorite/<str:platform>/<str:product_id>/", views.add_favorite, name="add_favorite"),
+    path("remove_favorite/<str:platform>/<str:product_id>/", views.remove_favorite, name="remove_favorite"),
     path("about/", views.about, name="about"),
     # 他のルーティング...
 ]
@@ -209,6 +239,22 @@ def search_products_on_rakuten(query="", item_code=""):
             return result["Items"][0]["Item"]
         else:
             return result["Items"]
+    else:
+        return None
+
+def search_products_on_yahoo(query="", item_code=""):
+    app_id = YAHOO_APP_ID
+    if item_code:
+        url = f"https://shopping.yahooapis.jp/ShoppingWebService/V3/itemSearch?appid={app_id}&itemCode={item_code}"
+    else:
+        url = f"https://shopping.yahooapis.jp/ShoppingWebService/V3/itemSearch?appid={app_id}&query={query}"
+    response = requests.get(url)
+    result = response.json()
+    if "hits" in result:
+        if item_code:
+            return result["hits"][0]
+        else:
+            return result["hits"]
     else:
         return None
 
