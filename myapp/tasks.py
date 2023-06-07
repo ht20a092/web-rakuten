@@ -80,8 +80,8 @@ def send_test_line_message():
 scheduler = BackgroundScheduler()
 scheduler.add_job(check_price, "interval", hours=1)
 
-if settings.DEBUG:  # Only send test messages in debug mode
-    scheduler.add_job(send_test_line_message, "interval", minutes=1)
+#if settings.DEBUG:  # Only send test messages in debug mode
+#    scheduler.add_job(send_test_line_message, "interval", minutes=1)
 
 scheduler.start()
 

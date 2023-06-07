@@ -1,7 +1,7 @@
 {% extends "myapp/base.html" %}
 
 {% block content %}
-  <h2>お気に入りリスト</h2>
+  <h2>お気に入りリスト (楽天市場)</h2>
   <table>
     <tr>
       <th>商品名</th>
@@ -9,9 +9,32 @@
       <th>価格</th>
       <th>削除</th>
     </tr>
-    {% for product in favorite_products %}
+    {% for product in rakuten_products %}
       <tr>
-        <td><a href="{{ product.url }}">{{ product.name }}</a></td> <!-- 商品名にリンクを追加 -->
+        <td><a href="{{ product.url }}">{{ product.name }}</a></td>
+        <td><img src="{{ product.image }}" alt="{{ product.name }}"></td>
+        <td>{{ product.price }} 円</td>
+        <td>
+          <form method="post" action="{% url 'myapp:remove_favorite' product.product_id %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">削除</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+  </table>
+
+  <h2>お気に入りリスト (Yahooショッピング)</h2>
+  <table>
+    <tr>
+      <th>商品名</th>
+      <th>画像</th>
+      <th>価格</th>
+      <th>削除</th>
+    </tr>
+    {% for product in yahoo_products %}
+      <tr>
+        <td><a href="{{ product.url }}">{{ product.name }}</a></td>
         <td><img src="{{ product.image }}" alt="{{ product.name }}"></td>
         <td>{{ product.price }} 円</td>
         <td>
@@ -24,3 +47,4 @@
     {% endfor %}
   </table>
 {% endblock %}
+

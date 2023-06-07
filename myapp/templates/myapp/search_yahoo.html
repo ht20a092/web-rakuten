@@ -21,8 +21,10 @@
         <form method="post" action="{% url 'myapp:add_favorite' hit.code %}">
             {% csrf_token %}
             <input type="hidden" name="product_id" value="{{ hit.code }}">
+            <input type="hidden" name="platform" value="yahoo">  <!-- 追加 -->
             <button type="submit" class="btn btn-primary">お気に入りに追加</button>
         </form>
+        
         {% else %}
         <p>商品コードが利用できません</p>
         {% endif %}

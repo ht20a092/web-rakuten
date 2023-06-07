@@ -57,10 +57,12 @@ def favorites(request):
     if request.user.is_authenticated:
         user = request.user
         user_profile = UserProfile.objects.get(user=user)
+        
+        # 商品情報を取得し、リストに格納する
+        rakuten_products_info = []
+        yahoo_products_info = []
         favorite_products = user_profile.favorite_products.all()
 
-        # 商品情報を取得し、リストに格納する
-        products_info = []
         for favorite_product in favorite_products:
             product_info = {
                 'product_id': favorite_product.product_id,
@@ -69,15 +71,19 @@ def favorites(request):
                 'price': favorite_product.price,
                 'url': favorite_product.url
             }
-            products_info.append(product_info)
+            
+            # If product is from rakuten market
+            if favorite_product.platform == 'rakuten':
+                rakuten_products_info.append(product_info)
+            # If product is from yahoo shopping
+            elif favorite_product.platform == 'yahoo':
+                yahoo_products_info.append(product_info)
 
-        # コンソールにお気に入り商品情報を出力
-        print("お気に入り商品情報:", products_info)
-
-        context = {'favorite_products': products_info}
+        context = {'rakuten_products': rakuten_products_info, 'yahoo_products': yahoo_products_info}
         return render(request, 'myapp/favorites.html', context)
     else:
         return redirect('myapp:login')
+
 
 def send_line_notify(message):
     url = 'https://notify-api.line.me/api/notify'
