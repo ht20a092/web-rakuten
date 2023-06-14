@@ -2,6 +2,10 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
+from django.db import models
+from django.contrib.auth.models import User
+
+
 class Product(models.Model):
     product_id = models.CharField(max_length=255, unique=True)
     name = models.CharField(max_length=255)

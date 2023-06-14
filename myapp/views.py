@@ -2,6 +2,7 @@ from django.shortcuts import redirect, render
 from .models import Product, UserProfile
 from django.http import HttpResponseRedirect
 from django.urls import reverse
+import json
 import requests
 from django.contrib.auth import authenticate, login as auth_login, logout
 from django.http import HttpResponse
@@ -33,13 +34,37 @@ def search_product_details_on_rakuten(product_id):
 
 def search_product_details_on_yahoo(product_id):
     app_id = "dj00aiZpPTdpT2VIRUxmWGpsdiZzPWNvbnN1bWVyc2VjcmV0Jng9ZmI-"
-    url = f"https://shopping.yahooapis.jp/ShoppingWebService/V3/itemSearch?appid={app_id}&itemCode={product_id}"
+    url = f"https://shopping.yahooapis.jp/ShoppingWebService/V3/itemSearch?appid={app_id}&query={product_id}"
     response = requests.get(url)
-    result = response.json()
-    if 'hits' in result and len(result['hits']) > 0:
-        return result["hits"][0]
-    else:
+    print(response.text)  # APIのレスポンスを直接表示
+
+    if response.status_code != 200:
         return None
+
+    try:
+        result = response.json()
+    except json.JSONDecodeError:
+        return None
+
+    if 'hits' in result and len(result['hits']) > 0:
+        for hit in result["hits"]:
+            if hit["code"] == product_id:
+                product_info = {
+                    "name": hit.get("name"),
+                    "description": hit.get("description"),
+                    "url": hit.get("url"),
+                    "inStock": hit.get("inStock"),
+                    "code": hit.get("code"),
+                    "image": hit.get("image", {}).get("medium"),  # JSONの中のJSONにアクセス
+                    "price": hit.get("price")  # ここを修正し、priceにアクセスする
+                }
+                return product_info
+    return None
+
+
+
+
+
 
 def add_favorite(request, platform, product_id):
     if request.method == "POST":
@@ -48,6 +73,8 @@ def add_favorite(request, platform, product_id):
             product_info = search_product_details_on_rakuten(product_id)
         elif platform == "yahoo":
             product_info = search_product_details_on_yahoo(product_id)
+
+        print("Product info: ", product_info)  # デバッグ情報を表示
 
         if product_info is not None:
             # Yahooと楽天で取得する情報の形式が異なるため、それぞれの場合で条件分岐
@@ -75,10 +102,17 @@ def add_favorite(request, platform, product_id):
                     "platform": platform,
                 },
             )
+
+            #print("Favorite product created: ", created)  # 商品が新しく作成されたかを表示
+            
             request.user.userprofile.favorite_products.add(favorite_product)
             request.user.save()
 
+            #print("Favorite products: ", request.user.userprofile.favorite_products.all())  # ユーザーのお気に入り商品を表示
+
     return HttpResponseRedirect(reverse("myapp:favorites"))
+
+
 
 
 
@@ -156,8 +190,10 @@ def search_yahoo(request):
     hits = []  
     if query:
         query = quote(query)
-        hits = tasks.search_products_on_yahoo(query)  
-    return render(request, 'myapp/search_yahoo.html', {'query': query, 'hits': hits})  
+        hits = tasks.search_products_on_yahoo_with_query(query)  
+    return render(request, 'myapp/search_yahoo.html', {'query': query, 'hits': hits})
+
+
 
 
 def remove_favorite(request, platform, product_id):
@@ -245,7 +281,7 @@ def search_products_on_rakuten(query="", item_code=""):
 def search_products_on_yahoo(query="", item_code=""):
     app_id = YAHOO_APP_ID
     if item_code:
-        url = f"https://shopping.yahooapis.jp/ShoppingWebService/V3/itemSearch?appid={app_id}&itemCode={item_code}"
+        url = f"https://shopping.yahooapis.jp/ShoppingWebService/V3/itemSearch?appid={app_id}&code={item_code}"
     else:
         url = f"https://shopping.yahooapis.jp/ShoppingWebService/V3/itemSearch?appid={app_id}&query={query}"
     response = requests.get(url)
@@ -257,5 +293,3 @@ def search_products_on_yahoo(query="", item_code=""):
             return result["hits"]
     else:
         return None
-
-
