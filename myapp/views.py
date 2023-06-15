@@ -32,11 +32,10 @@ def search_product_details_on_rakuten(product_id):
     else:
         return None
 
-def search_product_details_on_yahoo(product_id):
+def search_product_details_on_yahoo(name):
     app_id = "dj00aiZpPTdpT2VIRUxmWGpsdiZzPWNvbnN1bWVyc2VjcmV0Jng9ZmI-"
-    url = f"https://shopping.yahooapis.jp/ShoppingWebService/V3/itemSearch?appid={app_id}&query={product_id}"
+    url = f"https://shopping.yahooapis.jp/ShoppingWebService/V3/itemSearch?appid={app_id}&query={name}"
     response = requests.get(url)
-    print(response.text)  # APIのレスポンスを直接表示
 
     if response.status_code != 200:
         return None
@@ -46,19 +45,20 @@ def search_product_details_on_yahoo(product_id):
     except json.JSONDecodeError:
         return None
 
+    # 'hits'が存在し、かつ一つ以上の結果があることを確認します
     if 'hits' in result and len(result['hits']) > 0:
-        for hit in result["hits"]:
-            if hit["code"] == product_id:
-                product_info = {
-                    "name": hit.get("name"),
-                    "description": hit.get("description"),
-                    "url": hit.get("url"),
-                    "inStock": hit.get("inStock"),
-                    "code": hit.get("code"),
-                    "image": hit.get("image", {}).get("medium"),  # JSONの中のJSONにアクセス
-                    "price": hit.get("price")  # ここを修正し、priceにアクセスする
-                }
-                return product_info
+        # 最初のヒットを取得します
+        hit = result["hits"][0]
+        product_info = {
+            "name": hit.get("name"),
+            "description": hit.get("description"),
+            "url": hit.get("url"),
+            "inStock": hit.get("inStock"),
+            "code": hit.get("code"),
+            "image": hit.get("image", {}).get("medium"),  # JSONの中のJSONにアクセス
+            "price": hit.get("price")  # ここを修正し、priceにアクセスする
+        }
+        return product_info
     return None
 
 
@@ -66,13 +66,13 @@ def search_product_details_on_yahoo(product_id):
 
 
 
-def add_favorite(request, platform, product_id):
+def add_favorite(request, platform, product_id, name=None):
     if request.method == "POST":
         # 商品情報を取得
         if platform == "rakuten":
-            product_info = search_product_details_on_rakuten(product_id)
+            product_info = search_product_details_on_rakuten(product_id)  # 商品コードで検索
         elif platform == "yahoo":
-            product_info = search_product_details_on_yahoo(product_id)
+            product_info = search_product_details_on_yahoo(name)  # 商品名で検索
 
         print("Product info: ", product_info)  # デバッグ情報を表示
 
@@ -82,7 +82,7 @@ def add_favorite(request, platform, product_id):
                 item_code = product_info["code"]
                 item_name = product_info["name"]
                 item_price = product_info["price"]
-                item_image = product_info["image"]["medium"]
+                item_image = product_info["image"]
                 item_url = product_info["url"]
             elif platform == 'rakuten':
                 item_code = product_info["itemCode"]
@@ -103,14 +103,11 @@ def add_favorite(request, platform, product_id):
                 },
             )
 
-            #print("Favorite product created: ", created)  # 商品が新しく作成されたかを表示
-            
             request.user.userprofile.favorite_products.add(favorite_product)
             request.user.save()
 
-            #print("Favorite products: ", request.user.userprofile.favorite_products.all())  # ユーザーのお気に入り商品を表示
-
     return HttpResponseRedirect(reverse("myapp:favorites"))
+
 
 
 
@@ -223,7 +220,7 @@ urlpatterns = [
     path("search/rakuten/", views.search_rakuten, name="search_rakuten"),  # 追加
     path("search/yahoo/", views.search_yahoo, name="search_yahoo"),        # 追加
     path("favorites/", views.favorites, name="favorites"),
-    path("add_favorite/<str:platform>/<str:product_id>/", views.add_favorite, name="add_favorite"),
+    path("add_favorite/<str:platform>/<str:product_id>/<str:name>/", views.add_favorite, name="add_favorite"),
     path("remove_favorite/<str:platform>/<str:product_id>/", views.remove_favorite, name="remove_favorite"),
     path("about/", views.about, name="about"),
     # 他のルーティング...

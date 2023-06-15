@@ -36,16 +36,17 @@ def search_product_on_rakuten(item_code=""):
     result = get_json_from_api(url, params)
     return result["Items"][0] if result and result["Items"] else None
 
-def search_product_on_yahoo(item_code=""):
+def search_product_on_yahoo(product_name=""):
     YAHOO_APP_ID = "dj00aiZpPTdpT2VIRUxmWGpsdiZzPWNvbnN1bWVyc2VjcmV0Jng9ZmI-"  
     url = "https://shopping.yahooapis.jp/ShoppingWebService/V3/itemSearch"
     params = {
         "appid": YAHOO_APP_ID,
-        "itemCode": item_code,
+        "query": product_name,  # itemCodeからqueryに変更
     }
     result = get_json_from_api(url, params)
 
     return result["hits"][0] if result and result["hits"] else None
+
 
 def check_price():
     users = UserProfile.objects.all()
@@ -55,14 +56,16 @@ def check_price():
             if product.platform == "rakuten":
                 item = search_product_on_rakuten(item_code=product.product_id)
             else:
-                item = search_product_on_yahoo(item_code=product.product_id)
+                item = search_product_on_yahoo(product_name=product.name)
 
+            # 商品が存在し、価格が下がっている場合
             if item and item["itemPrice"] < product.price:
                 message = f"{product.name}の価格が下がりました！\n新しい価格: {item['itemPrice']}円\n詳細ページ: {product.url}"
                 send_line_notify(message)
                 print(message)
                 product.price = item["itemPrice"]
                 product.save()
+
 
 def send_test_line_message():
     print("Sending test LINE message...")
