@@ -62,17 +62,19 @@ def search_product_details_on_yahoo(name):
     return None
 
 
+def add_favorite(request, platform, product_id, product_name):
 
+    print("Platform: ", platform)
+    print("Product ID: ", product_id)
+    print("Product name: ", product_name)  # <--- ここを修正しました
 
-
-
-def add_favorite(request, platform, product_id, name=None):
     if request.method == "POST":
         # 商品情報を取得
         if platform == "rakuten":
             product_info = search_product_details_on_rakuten(product_id)  # 商品コードで検索
         elif platform == "yahoo":
-            product_info = search_product_details_on_yahoo(name)  # 商品名で検索
+            product_info = search_product_details_on_yahoo(product_name)  # 商品名で検索
+
 
         print("Product info: ", product_info)  # デバッグ情報を表示
 

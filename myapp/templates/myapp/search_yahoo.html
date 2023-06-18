@@ -18,7 +18,7 @@
                 <a href="{{ hit.url }}" target="_blank" rel="noopener noreferrer">{{ hit.url }}</a>
             </p>
         </div>
-        <form method="post" action="{% url 'myapp:add_favorite' 'yahoo' hit.code %}">
+        <form method="post" action="{% url 'myapp:add_favorite' 'yahoo' hit.code hit.name|urlencode %}">
             {% csrf_token %}
             <button type="submit" class="btn btn-primary">お気に入りに追加</button>
         </form>

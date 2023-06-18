@@ -18,7 +18,7 @@
                         <a href="{{ product.Item.itemUrl }}" target="_blank" rel="noopener noreferrer">{{ product.Item.itemUrl }}</a>
                     </p>
                 </div>
-                <form method="post" action="{% url 'myapp:add_favorite' 'rakuten' product.Item.itemCode %}">
+                <form method="post" action="{% url 'myapp:add_favorite' 'rakuten' product.Item.itemCode product.Item.itemName %}">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-primary">お気に入りに追加</button>
                 </form>
