@@ -86,8 +86,17 @@ def send_test_line_message():
     if response.status_code != 200:
         print(f"Error sending LINE message: {response.status_code}, {response.text}")
 
+def send_test_email():
+    message = "【あす楽】鍋 18cm 片手鍋 ih アイリスオーヤマ ダイヤモンドコート片手なべ おしゃれ ガス DIS-P18 片手なべ18cm 調理器具 取っ手 KITCHENCHEF 新生活[mr1][aut]の価格が下がりました！\n新しい価格: 1970円\n詳細ページ: https://item.rakuten.co.jp/k-kitchen/517499/"
+    subject = "テストメール"
+    recipient_list = ["yukina12180929@gmail.com"]  # 実際のメールアドレスに置き換えてください
+    send_notify_email('Price Drop Notification', message, recipient_list)
+    print("Test email sent.")
+
 scheduler = BackgroundScheduler()
 scheduler.add_job(check_price, "interval", hours=1)
+# scheduler.add_job(send_test_email, 'interval', minutes=1)
+# scheduler.add_job(check_price, "interval", minutes=1)
 #if settings.DEBUG:
 #    scheduler.add_job(send_test_line_message, "interval", minutes=1)
 

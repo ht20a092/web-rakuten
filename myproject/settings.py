@@ -122,10 +122,18 @@ STATICFILES_DIRS = [
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 
+"""
+SMTP認証に問題がある場合は、EMAIL_BACKEND を
+ 'django.core.mail.backends.smtp.EmailBackend' 
+ から 'django.core.mail.backends.console.EmailBackend' に変更して、
+ }メールをコンソールに出力できるかどうかをテストすることができます。
+ これにより、SMTP接続の問題か、
+ それともメール送信機能そのものに問題があるのかを判断するのに役立ちます。
+"""
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'your-smtp-server.com'  # SMTPサーバーのアドレス
+EMAIL_HOST = 'smtp.gmail.com'  # SMTPサーバーのアドレス
 EMAIL_PORT = 587  # SMTPサーバーのポート（通常は587）
 EMAIL_USE_TLS = True  # TLSを使用する場合はTrueにする
-EMAIL_HOST_USER = 'your-email@example.com'  # 送信用メールアドレス
-EMAIL_HOST_PASSWORD = 'your-email-password'  # 送信用メールアドレスのパスワード
+EMAIL_HOST_USER = 'ht20a092@oecu.jp'  # 送信用メールアドレス
+EMAIL_HOST_PASSWORD = 'zakV4LM7'  # 送信用メールアドレスのパスワード
