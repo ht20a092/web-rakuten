@@ -1,49 +1,62 @@
 {% extends "myapp/base.html" %}
 
 {% block content %}
-  <h2>お気に入りリスト (楽天市場)</h2>
-  <table>
-    <tr>
-      <th>商品名</th>
-      <th>画像</th>
-      <th>価格</th>
-      <th>削除</th>
-    </tr>
-    {% for product in rakuten_products %}
-      <tr>
-        <td><a href="{{ product.url }}">{{ product.name }}</a></td>
-        <td><img src="{{ product.image }}" alt="{{ product.name }}"></td>
-        <td>{{ product.price }} 円</td>
-        <td>
-          <form method="post" action="{% url 'myapp:remove_favorite' 'rakuten' product.product_id %}">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-danger">削除</button>
-          </form>
-        </td>
-      </tr>
-    {% endfor %}
-  </table>
+  <h2 class="mb-3">お気に入りリスト (楽天市場)</h2>
+  <div class="table-responsive">
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>商品名</th>
+          <th>画像</th>
+          <th>価格</th>
+          <th>削除</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for product in rakuten_products %}
+          <tr>
+            <td><a href="{{ product.url }}">{{ product.name }}</a></td>
+            <td><img src="{{ product.image }}" alt="{{ product.name }}" style="width: 100px;"></td>
+            <td>{{ product.price }} 円</td>
+            <td>
+              <form method="post" action="{% url 'myapp:remove_favorite' 'rakuten' product.product_id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">削除</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 
-  <h2>お気に入りリスト (Yahooショッピング)</h2>
-  <table>
-    <tr>
-      <th>商品名</th>
-      <th>画像</th>
-      <th>価格</th>
-      <th>削除</th>
-    </tr>
-    {% for product in yahoo_products %}
-      <tr>
-        <td><a href="{{ product.url }}">{{ product.name }}</a></td>
-        <td><img src="{{ product.image }}" alt="{{ product.name }}"></td>
-        <td>{{ product.price }} 円</td>
-        <td>
-          <form method="post" action="{% url 'myapp:remove_favorite' 'yahoo' product.product_id %}">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-danger">削除</button>
-          </form>
-        </td>
-      </tr>
-    {% endfor %}
-  </table>
+  <h2 class="mt-5 mb-3">お気に入りリスト (Yahooショッピング)</h2>
+  <div class="table-responsive">
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>商品名</th>
+          <th>画像</th>
+          <th>価格</th>
+          <th>削除</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for product in yahoo_products %}
+          <tr>
+            <td><a href="{{ product.url }}">{{ product.name }}</a></td>
+            <td><img src="{{ product.image }}" alt="{{ product.name }}" style="width: 100px;"></td>
+            <td>{{ product.price }} 円</td>
+            <td>
+              <form method="post" action="{% url 'myapp:remove_favorite' 'yahoo' product.product_id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">削除</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 {% endblock %}
+

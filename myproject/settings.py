@@ -114,3 +114,18 @@ STATIC_URL = '/static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'myapp.CustomUser'
+
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'your-smtp-server.com'  # SMTPサーバーのアドレス
+EMAIL_PORT = 587  # SMTPサーバーのポート（通常は587）
+EMAIL_USE_TLS = True  # TLSを使用する場合はTrueにする
+EMAIL_HOST_USER = 'your-email@example.com'  # 送信用メールアドレス
+EMAIL_HOST_PASSWORD = 'your-email-password'  # 送信用メールアドレスのパスワード

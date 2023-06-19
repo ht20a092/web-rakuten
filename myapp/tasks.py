@@ -47,6 +47,17 @@ def search_product_on_yahoo(product_name=""):
 
     return result["hits"][0] if result and result["hits"] else None
 
+def send_notify_email(subject, message, recipient_list):
+    """
+    Send notification email to user.
+    """
+    send_mail(
+        subject,
+        message,
+        settings.EMAIL_HOST_USER,
+        recipient_list,
+    )
+
 
 def check_price():
     users = UserProfile.objects.all()
@@ -61,8 +72,9 @@ def check_price():
             # 商品が存在し、価格が下がっている場合
             if item and item["itemPrice"] < product.price:
                 message = f"{product.name}の価格が下がりました！\n新しい価格: {item['itemPrice']}円\n詳細ページ: {product.url}"
-                send_line_notify(message)
                 print(message)
+                # Send email instead of LINE notify
+                send_notify_email('Price Drop Notification', message, [user.user.email])
                 product.price = item["itemPrice"]
                 product.save()
 

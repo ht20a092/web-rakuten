@@ -3,3 +3,4 @@ djangorestframework==3.13.0
 requests==2.26.0
 line-notify==0.1.4
 APScheduler==3.7.0
+django-bootstrap5

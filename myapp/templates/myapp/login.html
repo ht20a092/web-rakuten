@@ -1,13 +1,17 @@
 {% extends "myapp/base.html" %}
 
 {% block content %}
-    <h2>ログイン</h2>
+    <h2 class="mb-3">ログイン</h2>
     <form method="post">
         {% csrf_token %}
-        <label for="username">ユーザー名:</label>
-        <input type="text" name="username" required>
-        <label for="password">パスワード:</label>
-        <input type="password" name="password" required>
-        <button type="submit">ログイン</button>
+        <div class="mb-3">
+            <label for="username" class="form-label">ユーザー名:</label>
+            <input type="text" name="username" id="username" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">パスワード:</label>
+            <input type="password" name="password" id="password" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary">ログイン</button>
     </form>
 {% endblock %}
