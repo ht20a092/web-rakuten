@@ -10,6 +10,8 @@ from django.contrib.auth.forms import UserCreationForm
 from apscheduler.schedulers.background import BackgroundScheduler
 from . import tasks
 from urllib.parse import quote
+from django.shortcuts import render, redirect
+from .forms import CustomUserCreationForm
 
 
 RAKUTEN_APP_ID = "1072722666659103303"
@@ -292,3 +294,13 @@ def search_products_on_yahoo(query="", item_code=""):
             return result["hits"]
     else:
         return None
+
+def register(request):
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('myapp:login')
+    else:
+        form = CustomUserCreationForm()
+    return render(request, 'myapp/register.html', {'form': form})
