@@ -4,6 +4,8 @@ from django.core.mail import send_mail
 from apscheduler.schedulers.background import BackgroundScheduler
 from myapp.models import Product, UserProfile
 from .views import send_line_notify
+from .views import search_product_details_on_rakuten
+from .views import search_product_details_on_yahoo
 
 def search_products_on_yahoo_with_query(query=""):
     app_id = "dj00aiZpPTdpT2VIRUxmWGpsdiZzPWNvbnN1bWVyc2VjcmV0Jng9ZmI-"  
@@ -60,43 +62,32 @@ def send_notify_email(subject, message, recipient_list):
 
 
 def check_price():
-    users = UserProfile.objects.all()
-    for user in users:
-        favorite_products = user.favorite_products.all()
-        for product in favorite_products:
-            if product.platform == "rakuten":
-                item = search_product_on_rakuten(item_code=product.product_id)
-            else:
-                item = search_product_on_yahoo(product_name=product.name)
+    products = Product.objects.all()
+    for product in products:
+        # 商品が楽天から取得されたものならば
+        if product.platform == 'rakuten':
+            item = search_product_on_rakuten(product.product_id)
+            if item and item["Item"]["itemPrice"] < product.price:  # 安くなった時に通知を送るために、等しくないかをチェック
+                message = f'{product.name}の価格が変動しました。現在の価格：{item["Item"]["itemPrice"]}'
+                user_profiles = UserProfile.objects.filter(favorite_products=product)  # その商品をお気に入りにしている全てのユーザープロフィールを取得
+                for user_profile in user_profiles:
+                    send_notify_email("価格変動のお知らせ", message, [user_profile.user.email])  # 各ユーザーにメールを送る
+        # 商品がYahooから取得されたものならば
+        elif product.platform == 'yahoo':
+            item = search_product_on_yahoo(product.name)
+            if item and item["price"] < product.price:  # 安くなった時に通知を送るために、等しくないかをチェック
+                message = f'{product.name}の価格が変動しました。現在の価格：{item["price"]}'
+                user_profiles = UserProfile.objects.filter(favorite_products=product)  # その商品をお気に入りにしている全てのユーザープロフィールを取得
+                for user_profile in user_profiles:
+                    send_notify_email("価格変動のお知らせ", message, [user_profile.user.email])  # 各ユーザーにメールを送る
 
-            # 商品が存在し、価格が下がっている場合
-            if item and item["itemPrice"] < product.price:
-                message = f"{product.name}の価格が下がりました！\n新しい価格: {item['itemPrice']}円\n詳細ページ: {product.url}"
-                print(message)
-                # Send email instead of LINE notify
-                send_notify_email('Price Drop Notification', message, [user.user.email])
-                product.price = item["itemPrice"]
-                product.save()
 
 
-def send_test_line_message():
-    print("Sending test LINE message...")
-    message = "テストです"
-    response = send_line_notify(message)
-    if response.status_code != 200:
-        print(f"Error sending LINE message: {response.status_code}, {response.text}")
-
-def send_test_email():
-    message = "【あす楽】鍋 18cm 片手鍋 ih アイリスオーヤマ ダイヤモンドコート片手なべ おしゃれ ガス DIS-P18 片手なべ18cm 調理器具 取っ手 KITCHENCHEF 新生活[mr1][aut]の価格が下がりました！\n新しい価格: 1970円\n詳細ページ: https://item.rakuten.co.jp/k-kitchen/517499/"
-    subject = "テストメール"
-    recipient_list = ["yukina12180929@gmail.com"]  # 実際のメールアドレスに置き換えてください
-    send_notify_email('Price Drop Notification', message, recipient_list)
-    print("Test email sent.")
 
 scheduler = BackgroundScheduler()
-scheduler.add_job(check_price, "interval", hours=1)
+#scheduler.add_job(check_price, "interval", hours=1)
 # scheduler.add_job(send_test_email, 'interval', minutes=1)
-# scheduler.add_job(check_price, "interval", minutes=1)
+scheduler.add_job(check_price, "interval", minutes=1)
 #if settings.DEBUG:
 #    scheduler.add_job(send_test_line_message, "interval", minutes=1)
 
