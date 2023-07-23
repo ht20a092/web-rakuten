@@ -9,10 +9,10 @@ from django.http import HttpResponse
 from django.contrib.auth.forms import UserCreationForm
 from apscheduler.schedulers.background import BackgroundScheduler
 from . import tasks
-from urllib.parse import quote
+from urllib.parse import unquote, quote
 from django.shortcuts import render, redirect
 from .forms import CustomUserCreationForm
-from urllib.parse import unquote
+
 
 
 RAKUTEN_APP_ID = "1072722666659103303"
@@ -66,7 +66,7 @@ def search_product_details_on_yahoo(name):
 
 
 def add_favorite(request, platform, product_id, product_name):
-    product_name = urllib.parse.unquote(request.GET.get('product_name', ''))
+    #product_name = urllib.parse.unquote(request.GET.get('product_name', ''))
 
     print("Platform: ", platform)
     print("Product ID: ", product_id)
