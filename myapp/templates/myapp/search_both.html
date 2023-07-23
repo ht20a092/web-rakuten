@@ -1,0 +1,60 @@
+{% extends "myapp/base.html" %}
+
+{% block content %}
+    <h1 class="mb-3">楽天&Yahooショッピング 商品検索</h1>
+    <form method="get" class="mb-3">
+        <div class="input-group">
+            <input type="text" name="query" value="{{ query }}" placeholder="キーワードを入力" class="form-control">
+            <div class="input-group-append">
+                <input type="submit" value="検索" class="btn btn-outline-primary">
+            </div>
+        </div>
+    </form>
+
+    <div class="row">
+        <div class="col">
+            <h2 class="mb-3">楽天市場の商品</h2>
+            {% for product in rakuten_products %}
+                <div class="col-lg-4 col-md-6 col-sm-12 mb-4">
+                    <div class="card">
+                        <img src="{{ product.Item.mediumImageUrls.0.imageUrl }}" alt="{{ product.Item.itemName }}" class="card-img-top">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.Item.itemName }}</h5>
+                            <p class="card-text">{{ product.Item.itemPrice }}円</p>
+                            <p class="card-text"><small class="text-muted"><a href="{{ product.Item.itemUrl }}" target="_blank" rel="noopener noreferrer">商品ページへ</a></small></p>
+                            <form method="post" action="{% url 'myapp:add_favorite' 'rakuten' product.Item.itemCode product.Item.itemName|urlencode %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary">お気に入りに追加</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="col">
+            <h2 class="mb-3">Yahooショッピングの商品</h2>
+            {% for hit in yahoo_hits %}
+                <div class="col-lg-4 col-md-6 col-sm-12 mb-4">
+                    <div class="card">
+                        {% if hit.code %}
+                        <img src="{{ hit.image.medium }}" alt="{{ hit.name }}" class="card-img-top">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ hit.name }}</h5>
+                            <p class="card-text">{{ hit.price }}円</p>
+                            <p class="card-text"><small class="text-muted"><a href="{{ hit.url }}" target="_blank" rel="noopener noreferrer">商品ページへ</a></small></p>
+                            <form method="post" action="{% url 'myapp:add_favorite' 'yahoo' hit.code hit.name|urlencode %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary">お気に入りに追加</button>
+                            </form>
+                        </div>
+                        {% else %}
+                        <div class="card-body">
+                            <p>商品コードが利用できません</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

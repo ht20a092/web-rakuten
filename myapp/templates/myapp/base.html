@@ -26,6 +26,9 @@
                             <a class="nav-link" href="{% url 'myapp:search_yahoo' %}">Yahooショッピング検索</a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link" href="{% url 'myapp:search_both' %}">楽天&Yahoo商品検索</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="{% url 'myapp:favorites' %}">お気に入りリスト</a>
                         </li>
                         {% if user.is_authenticated %}

@@ -64,6 +64,16 @@ def search_product_details_on_yahoo(name):
         return product_info
     return None
 
+def search_both(request):
+    query = request.GET.get("query", "")
+    rakuten_products = []
+    yahoo_hits = []
+    if query:
+        rakuten_products = search_products_on_rakuten(query)
+        yahoo_hits = search_products_on_yahoo(query)
+    return render(request, "myapp/search_both.html", {"rakuten_products": rakuten_products, "yahoo_hits": yahoo_hits, "query": query})
+
+
 
 def add_favorite(request, platform, product_id, product_name):
     #product_name = urllib.parse.unquote(request.GET.get('product_name', ''))
