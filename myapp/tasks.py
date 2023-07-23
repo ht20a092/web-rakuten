@@ -67,19 +67,24 @@ def check_price():
         # 商品が楽天から取得されたものならば
         if product.platform == 'rakuten':
             item = search_product_on_rakuten(product.product_id)
-            if item and item["Item"]["itemPrice"] < product.price:  # 安くなった時に通知を送るために、等しくないかをチェック
-                message = f'{product.name}の価格が変動しました。現在の価格：{item["Item"]["itemPrice"]}'
+            if item and item["Item"]["itemPrice"] != product.price:  # 価格が下がった時に通知を送るために、新しい価格が元の価格よりも低いかをチェック
+                message = f'{product.name}の値段が{product.price}から{item["Item"]["itemPrice"]}になりました'
                 user_profiles = UserProfile.objects.filter(favorite_products=product)  # その商品をお気に入りにしている全てのユーザープロフィールを取得
                 for user_profile in user_profiles:
                     send_notify_email("価格変動のお知らせ", message, [user_profile.user.email])  # 各ユーザーにメールを送る
+                product.price = item["Item"]["itemPrice"]  # 商品の価格を更新
+                product.save()  # 更新を保存
         # 商品がYahooから取得されたものならば
         elif product.platform == 'yahoo':
             item = search_product_on_yahoo(product.name)
-            if item and item["price"] < product.price:  # 安くなった時に通知を送るために、等しくないかをチェック
-                message = f'{product.name}の価格が変動しました。現在の価格：{item["price"]}'
+            if item and item["price"] != product.price:  # 価格が下がった時に通知を送るために、新しい価格が元の価格よりも低いかをチェック
+                message = f'{product.name}の値段が{product.price}から{item["price"]}になりました'
                 user_profiles = UserProfile.objects.filter(favorite_products=product)  # その商品をお気に入りにしている全てのユーザープロフィールを取得
                 for user_profile in user_profiles:
                     send_notify_email("価格変動のお知らせ", message, [user_profile.user.email])  # 各ユーザーにメールを送る
+                product.price = item["price"]  # 商品の価格を更新
+                product.save()  # 更新を保存
+
 
 
 
