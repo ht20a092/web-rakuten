@@ -20,7 +20,7 @@
                         <h5 class="card-title">{{ product.Item.itemName }}</h5>
                         <p class="card-text">{{ product.Item.itemPrice }}円</p>
                         <p class="card-text"><small class="text-muted"><a href="{{ product.Item.itemUrl }}" target="_blank" rel="noopener noreferrer">商品ページへ</a></small></p>
-                        <form method="post" action="{% url 'myapp:add_favorite' 'rakuten' product.Item.itemCode product.Item.itemName %}">
+                        <form method="post" action="{% url 'myapp:add_favorite' 'rakuten' product.Item.itemCode product.Item.itemName|urlencode %}">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-primary">お気に入りに追加</button>
                         </form>

@@ -12,6 +12,7 @@ from . import tasks
 from urllib.parse import quote
 from django.shortcuts import render, redirect
 from .forms import CustomUserCreationForm
+from urllib.parse import unquote
 
 
 RAKUTEN_APP_ID = "1072722666659103303"
@@ -65,6 +66,7 @@ def search_product_details_on_yahoo(name):
 
 
 def add_favorite(request, platform, product_id, product_name):
+    product_name = urllib.parse.unquote(request.GET.get('product_name', ''))
 
     print("Platform: ", platform)
     print("Product ID: ", product_id)
@@ -224,7 +226,7 @@ urlpatterns = [
     path("search/rakuten/", views.search_rakuten, name="search_rakuten"),  # 追加
     path("search/yahoo/", views.search_yahoo, name="search_yahoo"),        # 追加
     path("favorites/", views.favorites, name="favorites"),
-    path("add_favorite/<str:platform>/<str:product_id>/<str:name>/", views.add_favorite, name="add_favorite"),
+    path('add_favorite/<str:platform>/<str:product_id>/<path:product_name>/', views.add_favorite, name='add_favorite'),
     path("remove_favorite/<str:platform>/<str:product_id>/", views.remove_favorite, name="remove_favorite"),
     path("about/", views.about, name="about"),
     # 他のルーティング...
