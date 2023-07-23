@@ -257,7 +257,7 @@ def register(request):
 
 def logout_view(request):
     logout(request)
-    return redirect('myapp:index')
+    return redirect('myapp:search_rakuten')
 
 def search_products_on_rakuten(query="", item_code=""):
     app_id = RAKUTEN_APP_ID
