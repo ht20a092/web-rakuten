@@ -10,6 +10,7 @@
           <th>画像</th>
           <th>価格</th>
           <th>削除</th>
+          <th>メールテスト</th>  <!-- New column header -->
         </tr>
       </thead>
       <tbody>
@@ -22,6 +23,12 @@
               <form method="post" action="{% url 'myapp:remove_favorite' 'rakuten' product.product_id %}">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-danger">削除</button>
+              </form>
+            </td>
+            <td>
+              <form method="post" action="{% url 'myapp:test_email' 'rakuten' product.product_id product.name %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-info">メールテスト</button>
               </form>
             </td>
           </tr>
@@ -39,6 +46,7 @@
           <th>画像</th>
           <th>価格</th>
           <th>削除</th>
+          <th>メールテスト</th>  <!-- New column header -->
         </tr>
       </thead>
       <tbody>
@@ -53,10 +61,15 @@
                 <button type="submit" class="btn btn-danger">削除</button>
               </form>
             </td>
+            <td>
+              <form method="post" action="{% url 'myapp:test_email' 'yahoo' product.name product.name %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-info">メールテスト</button>
+              </form>
+            </td>
           </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 {% endblock %}
-

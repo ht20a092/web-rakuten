@@ -12,6 +12,8 @@ from . import tasks
 from urllib.parse import unquote, quote
 from django.shortcuts import render, redirect
 from .forms import CustomUserCreationForm
+from django.core.mail import send_mail
+from django.conf import settings
 
 
 
@@ -316,3 +318,34 @@ def register(request):
     else:
         form = CustomUserCreationForm()
     return render(request, 'myapp/register.html', {'form': form})
+
+def send_notify_email_from_view(subject, message, recipient_list):
+    send_mail(
+        subject,
+        message,
+        settings.EMAIL_HOST_USER,
+        recipient_list,
+    )
+
+def test_email(request, platform, product_id, product_name):
+    if request.user.is_authenticated:
+        if platform == "rakuten":
+            product_info = search_product_details_on_rakuten(product_id)  # 商品コードで検索
+        elif platform == "yahoo":
+            product_info = search_product_details_on_yahoo(product_name)  # 商品名で検索
+
+        if product_info is not None:
+            # Yahooと楽天で取得する情報の形式が異なるため、それぞれの場合で条件分岐
+            if platform == 'yahoo':
+                item_name = product_info["name"]
+                item_price = product_info["price"]
+            elif platform == 'rakuten':
+                item_name = product_info["itemName"]
+                item_price = product_info["itemPrice"]
+
+            # メールを送信
+            subject = f"{item_name} の現在の価格"
+            message = f"{item_name} の現在の価格は {item_price} 円です。"
+            send_notify_email_from_view(subject, message, [request.user.email])  # ここを修正します
+
+    return HttpResponseRedirect(reverse("myapp:favorites"))
